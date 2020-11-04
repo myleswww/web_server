@@ -14,7 +14,6 @@ import os
 import threading
 import datetime
 from _thread import start_new_thread
-from http_client import client
 from request import request
 from response import response
 #from queue_service import queue_service
@@ -65,7 +64,7 @@ class connection(threading.Thread):
             print("Error listening")
         except socket.timeout:
             print("Connection timed out!")
-        self.sock.close()
+        
         
         
 
@@ -81,7 +80,7 @@ class connection(threading.Thread):
         
         #set headers
         for b in lines:
-            
+            #print("This is b: {0}".format(b))
             if lines.index(b) == 0: #do not want to repeat what we already did.
                 continue
             if(b == ''): #last two values are '', if left to be split, they will cause an out of index error
@@ -90,7 +89,7 @@ class connection(threading.Thread):
                 a = b.split(": ") #split headers by ':'
                 req.add_header(a[0], a[1]) # a is [header, value] in this case
         
-        #req.to_string()
+        req.to_string()
         #add to list of requests
         self.client_requests.append(req)
         self.generate_response(req, addr)
@@ -125,8 +124,7 @@ class connection(threading.Thread):
         print("Response to client: \n{0}".format(resp.to_string()))
         self.lock.release()
 
-        oooof = client()
-        oof = oooof.send_socket(resp.to_send(), addr[0], 8080)
+        self.sock.sendall(resp.to_send())
         
         
 
@@ -205,7 +203,7 @@ class connection(threading.Thread):
     def read_file(self, file_name):
         total = ""
         with open(file_name) as f:
-            bytes_read =  f.read(4096)
+            bytes_read =  f.readline(4026)
             total = total + bytes_read
         return total
 
