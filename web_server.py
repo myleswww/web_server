@@ -124,10 +124,13 @@ class connection(threading.Thread):
         print("Response to client: \n{0}".format(resp.to_string()))
         self.lock.release()
 
-        self.sock.sendall(resp.to_send())
-        self.sock.sendall(str.encode("\n", "UTF-8")
-        self.sock.sendall(resp.get_byte_data())
-        
+        #self.sock.sendall(resp.to_send())
+        self.sock.send(bytes(resp.to_string(), 'UTF-8'))
+        self.sock.send(bytes('\n', 'UTF-8')) #separate headers from body!!!!! IMPORTANT!!!!!!!!!!!
+        self.sock.send(resp.get_byte_data())
+        #self.sock.sendall(str.encode("\n", "UTF-8"))
+        #self.sock.send(resp.get_byte_data())
+        self.sock.close()
 
     def set_content_type(self, requested_data_type, request, response):
         if(requested_data_type == "html"):
@@ -177,7 +180,7 @@ class connection(threading.Thread):
     def set_response_code(self, request, response):
         if(response.get_data() != ''):
             response.set_code("200 OK")
-            self.set_connection(response, "keep-alive")
+            self.set_connection(response, "close")
         if(response.get_data() == ''):
             response.set_code("404 NOT FOUND")
             self.set_connection(response, "closed")
@@ -204,7 +207,7 @@ class connection(threading.Thread):
     def read_file(self, file_name):
         total = ""
         with open(file_name) as f:
-            bytes_read =  f.readline(4026)
+            bytes_read =  f.readline()
             total = total + bytes_read
         return total
 
