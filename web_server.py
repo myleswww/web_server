@@ -124,14 +124,15 @@ class connection(threading.Thread):
         print("Response to client: \n{0}".format(resp.to_string()))
         self.lock.release()
 
-        #self.sock.sendall(resp.to_send())
-        conn.send(bytes(resp.to_string(), 'UTF-8'))
-        conn.send(bytes('\n', 'UTF-8')) #separate headers from body!!!!! IMPORTANT!!!!!!!!!!!
-        conn.send(resp.get_byte_data())
-        #self.sock.sendall(str.encode("\n", "UTF-8"))
-        #self.sock.send(resp.get_byte_data())
-        conn.close()
+        try:
 
+            conn.send(bytes(resp.to_string(), 'UTF-8'))
+            conn.send(bytes('\n', 'UTF-8')) #separate headers from body!!!!! IMPORTANT!!!!!!!!!!!
+            conn.send(resp.get_byte_data())
+            conn.close()
+        except socket.error as v:
+            print("Socket error: {0}".format(str(v)))
+        
 
     def set_content_type(self, requested_data_type, request, response):
         if(requested_data_type == "html"):
