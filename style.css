@@ -1,0 +1,13 @@
+* {
+	font-family: "Sentinel",serif;
+}
+
+.site-title {
+	font-size: 1rem;
+	margin-top: 0;
+	color: #e4e4e4;
+}
+
+.bg-header {
+	background-color: #13294b;
+}
