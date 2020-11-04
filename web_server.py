@@ -59,16 +59,18 @@ class connection(threading.Thread):
                 if(message == None):
                     continue
                 else:
-                    start_new_thread(self.parse, (message, address, ))
+                    start_new_thread(self.parse, (message, address, connection, ))
         except socket.error:
             print("Error listening")
         except socket.timeout:
             print("Connection timed out!")
+        self.sock.shutdown(socket.SHUT_RDWR)
+        self.sock.close()
         
         
         
 
-    def parse(self, c, addr):
+    def parse(self, c, addr, conn):
         '''parses the data and puts it into a request object. Then the request object is added to the array of requests'''
         s = c.decode('UTF-8') #split the string into an array
         
@@ -92,10 +94,10 @@ class connection(threading.Thread):
         req.to_string()
         #add to list of requests
         self.client_requests.append(req)
-        self.generate_response(req, addr)
+        self.generate_response(req, addr, conn)
         
 
-    def generate_response(self,request, addr):
+    def generate_response(self,request, addr, conn):
         '''assigns values to response class based on request object'''
         resp = response() #create response object
 
@@ -125,12 +127,12 @@ class connection(threading.Thread):
         self.lock.release()
 
         #self.sock.sendall(resp.to_send())
-        self.sock.send(bytes(resp.to_string(), 'UTF-8'))
-        self.sock.send(bytes('\n', 'UTF-8')) #separate headers from body!!!!! IMPORTANT!!!!!!!!!!!
-        self.sock.send(resp.get_byte_data())
+        conn.send(bytes(resp.to_string(), 'UTF-8'))
+        conn.send(bytes('\n', 'UTF-8')) #separate headers from body!!!!! IMPORTANT!!!!!!!!!!!
+        conn.send(resp.get_byte_data())
         #self.sock.sendall(str.encode("\n", "UTF-8"))
         #self.sock.send(resp.get_byte_data())
-        self.sock.close()
+        conn.close()
 
     def set_content_type(self, requested_data_type, request, response):
         if(requested_data_type == "html"):
@@ -158,7 +160,7 @@ class connection(threading.Thread):
             req_file_split = request.get_path().split("/")
             req_file = req_file_split[1]
 
-        
+        self.set_content_length(response, req_file)
         
         if(response.get_header("content-type") == "text/html"):
             for x in self.root:
@@ -173,7 +175,7 @@ class connection(threading.Thread):
                 total = self.read_file(req_file)
                 response.set_data(total)
 
-        self.set_content_length(response, req_file)
+        
 
 
 
