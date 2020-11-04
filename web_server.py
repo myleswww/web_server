@@ -67,8 +67,6 @@ class connection(threading.Thread):
         self.sock.shutdown(socket.SHUT_RDWR)
         self.sock.close()
         
-        
-        
 
     def parse(self, c, addr, conn):
         '''parses the data and puts it into a request object. Then the request object is added to the array of requests'''
@@ -134,6 +132,7 @@ class connection(threading.Thread):
         #self.sock.send(resp.get_byte_data())
         conn.close()
 
+
     def set_content_type(self, requested_data_type, request, response):
         if(requested_data_type == "html"):
             data = "text/html"
@@ -147,7 +146,6 @@ class connection(threading.Thread):
         response.add_header("content-type", data)
         
         
-    
     def get_data(self, request, response):
         '''gets the data to send'''
         
@@ -176,9 +174,6 @@ class connection(threading.Thread):
                 response.set_data(total)
 
         
-
-
-
     def set_response_code(self, request, response):
         if(response.get_data() != ''):
             response.set_code("200 OK")
@@ -191,20 +186,21 @@ class connection(threading.Thread):
             self.set_connection(response, "closed")
         
         
-
-    
     def set_content_length(self, response, file_name):
         '''sets the content length header in the response'''
         size = os.path.getsize(file_name)
         response.add_header("content-length", size)
 
+
     def set_date_time(self, response):
         '''sets the time header in the response'''
         response.add_header("Date", datetime.datetime.now())
 
+
     def set_connection(self, response, connection):
         '''sets the connection header'''
         response.add_header("Connection", connection)
+
 
     def read_file(self, file_name):
         total = ""
@@ -213,9 +209,11 @@ class connection(threading.Thread):
             total = total + bytes_read
         return total
 
+
     def set_server(self, response):
         '''sets the server name'''
         response.add_header("Server", self.server_name)
+
 
 def main():
     sock = connection("localhost", 8080)
@@ -223,9 +221,5 @@ def main():
     sock.listen()
 
     
-
-
-
-
 if __name__ == '__main__':
     main()
