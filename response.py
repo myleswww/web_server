@@ -65,16 +65,18 @@ class response(object):
         """return just the data from the response"""
         return self.data
 
+    def get_byte_data(self):
+        return self.Data
 
 
     def to_string(self):
         """prints the request formatted like we saw in class"""
-        message = str(self.version + " " + self.code + self.get_headers() + "\n" + self.get_data() + "\n")
+        message = str(self.version + " " + self.code + self.get_headers() + "\n")
         
         return message
 
     def to_send(self):
-        message = bytes(self.version + " " + self.code + self.get_headers() + "\n" + self.get_data() + "\n", "UTF-8")
+        message = bytes(self.version + " " + self.code + self.get_headers() + "\n", "UTF-8")
         return message
 
 

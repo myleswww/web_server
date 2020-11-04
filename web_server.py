@@ -125,7 +125,8 @@ class connection(threading.Thread):
         self.lock.release()
 
         self.sock.sendall(resp.to_send())
-        
+        self.sock.sendall(str.encode("\n", "UTF-8")
+        self.sock.sendall(resp.get_byte_data())
         
 
     def set_content_type(self, requested_data_type, request, response):
