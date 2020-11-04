@@ -126,10 +126,11 @@ class connection(threading.Thread):
 
         try:
 
-            conn.send(bytes(resp.to_string(), 'UTF-8'))
-            conn.send(bytes('\n', 'UTF-8')) #separate headers from body!!!!! IMPORTANT!!!!!!!!!!!
-            conn.send(resp.get_byte_data())
+            conn.sendall(bytes(resp.to_string(), 'UTF-8'))
+            conn.sendall(bytes('\n', 'UTF-8')) #separate headers from body!!!!! IMPORTANT!!!!!!!!!!!
+            conn.sendall(resp.get_byte_data())
             conn.close()
+            print("Sent response")
         except socket.error as v:
             print("Socket error: {0}".format(str(v)))
         
@@ -184,7 +185,7 @@ class connection(threading.Thread):
             self.set_connection(response, "closed")
         if(request.get_method() != "GET"):
             response.set_code("503 SERVICE UNAVAILABLE")
-            self.set_connection(response, "closed")
+            self.set_connection(response, "keep-alive")
         
         
     def set_content_length(self, response, file_name):
