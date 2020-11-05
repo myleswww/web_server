@@ -134,7 +134,8 @@ class connection(threading.Thread):
 
         self.lock.acquire()
         self.responses.append(resp)
-        print("Response to client: \n{0}".format(resp.to_send().decode('UTF-8', 'ignore')))
+        #print("Response to client: \n{0}".format(resp.to_send().decode('UTF-8', 'ignore')))
+        print("Response to client:\n{0}".format(resp.to_string()))
         self.lock.release()
 
         try:
@@ -190,7 +191,7 @@ class connection(threading.Thread):
         
         total = self.read_file(req_file)
         self.lock.acquire()
-        print("Data: " + total.decode('UTF-8', 'ignore'))
+        #print("Data: " + total.decode('UTF-8', 'ignore'))
         self.lock.release()
         response.set_data(total)
 
