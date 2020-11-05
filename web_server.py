@@ -25,12 +25,20 @@ class connection(threading.Thread):
     port = 0
     lock = threading.Lock() #saw a really cool tutorial for multithreading that included this
     codes = {
-            "POST": "405",
-            "HEAD": "405"
+            "200": "OK",
+            "404": "NOT FOUND",
+            "503": "SERVICE UNAVAILABLE"
         }
     root = ["index.html", "home.html"]
     server_name = "Myles' badass server 1.0"
-
+    mime_types = {  #better way to add the header using mime-types that you helped with
+            "html": "text/html",
+            "css": "text/css",
+            "jpg": "image/jpeg",
+            "jpeg": "image/jpeg",
+            "png": "image/png",
+            "ico": "image/x-icon"
+        }
     def __init__(self, host, port):
         '''initialize the connection'''
         self.host = host
@@ -121,13 +129,13 @@ class connection(threading.Thread):
 
         self.lock.acquire()
         self.responses.append(resp)
-        print("Response to client: \n{0}".format(resp.to_string()))
+        print("Response to client: \n{0}".format(resp.to_send().decode("UTF-8")))
         self.lock.release()
 
         try:
 
-            conn.sendall(bytes(resp.to_string(), 'UTF-8'))
-            conn.sendall(bytes('\n', 'UTF-8')) #separate headers from body!!!!! IMPORTANT!!!!!!!!!!!
+            conn.sendall(resp.to_send())
+            #conn.sendall(bytes('\n', 'UTF-8')) #separate headers from body!!!!! IMPORTANT!!!!!!!!!!!
             conn.sendall(resp.get_byte_data())
             conn.close()
             print("Sent response")
@@ -136,7 +144,7 @@ class connection(threading.Thread):
         
 
     def set_content_type(self, requested_data_type, request, response):
-        if(requested_data_type == "html"):
+        '''if(requested_data_type == "html"):
             data = "text/html"
         if(requested_data_type == "jpg"):
             data = "jpg"
@@ -145,7 +153,9 @@ class connection(threading.Thread):
         if(requested_data_type == "ico"):
             data = "ico"
         
-        response.add_header("content-type", data)
+        response.add_header("content-type", data)'''
+
+        response.add_header("content-type", self.mime_types[requested_data_type])
         
         
     def get_data(self, request, response):
@@ -170,7 +180,7 @@ class connection(threading.Thread):
             
 
         type_ = response.get_header("content-type")
-        if(type_ == "png" or type_ == "jpg" or type_ == "ico" or type_ == "css"):
+        if type_ in self.mime_types:
             if(req_file == "logo.png" or req_file == "blue.jpg" or req_file == "style.css"):
                 total = self.read_file(req_file)
                 response.set_data(total)
@@ -178,14 +188,14 @@ class connection(threading.Thread):
         
     def set_response_code(self, request, response):
         if(response.get_data() != ''):
-            response.set_code("200 OK")
-            self.set_connection(response, "close")
+            response.set_code("200" + " " + self.codes["200"])
+            self.set_connection(response, "keep-alive")
         if(response.get_data() == ''):
-            response.set_code("404 NOT FOUND")
+            response.set_code("404" + " " + self.codes["404"])
             self.set_connection(response, "closed")
         if(request.get_method() != "GET"):
-            response.set_code("503 SERVICE UNAVAILABLE")
-            self.set_connection(response, "keep-alive")
+            response.set_code("503" + " " + self.codes["503"])
+            self.set_connection(response, "closed")
         
         
     def set_content_length(self, response, file_name):
@@ -207,7 +217,7 @@ class connection(threading.Thread):
     def read_file(self, file_name):
         total = ""
         with open(file_name) as f:
-            bytes_read =  f.readline()
+            bytes_read =  f.read()
             total = total + bytes_read
         return total
 

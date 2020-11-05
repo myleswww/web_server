@@ -76,7 +76,7 @@ class response(object):
         return message
 
     def to_send(self):
-        message = bytes(self.version + " " + self.code + self.get_headers() + "\n", "UTF-8")
+        message = (self.version + " " + self.code + self.get_headers() + "\n" + self.get_data() + "\n").encode("UTF-8")
         return message
 
 
