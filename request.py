@@ -65,14 +65,16 @@ class request(object):
 
     def to_string(self):
         """prints the request formatted like we saw in class(use json)"""
+        sp = " "
+        self.set_data(str(self.version + sp + self.method + sp + self.path + sp + self.get_headers() + "\n"))
         print(self.data)
         
     
     def __init__(self, type_input, path):
         """Does everything to return a string of the data"""
-        sp = " "
+        
         self.method =  self.set_method(type_input)
         self.path = self.set_path(path)
         
-        self.data = str(self.method + sp + self.path + sp + self.version + self.get_headers() + "\n")
+        
         

@@ -84,6 +84,7 @@ class connection(threading.Thread):
         a = re.split(" +", lines[0])
 
         #assign the variables to a request object
+        #print(a[0] + " " + a[1])
         req = request(a[0], a[1]) #since req requires the method and path to be initialized, this has to be done before the loop
         
         #set headers
@@ -100,7 +101,9 @@ class connection(threading.Thread):
         req.to_string()
         #add to list of requests
         self.client_requests.append(req)
+        
         self.generate_response(req, addr, conn)
+
         
 
     def generate_response(self,request, addr, conn):
@@ -113,15 +116,16 @@ class connection(threading.Thread):
         #print(path)
         if(path == "/"):
             requested_data_type = "html"
-        if(path != "/" and path != "200"):
+        if(path != "/"):
             path_split = path.split(".")
            
             requested_data_type = path_split[1]
+            
         else:
             requested_data_type = "html"
         resp.set_version("HTTP/1.1")
         self.set_server(resp)
-        self.set_content_type(requested_data_type, request, resp)
+        self.set_content_type(requested_data_type, resp)
         self.get_data(request, resp)
         self.set_response_code(request, resp)
         self.set_date_time(resp)
@@ -143,7 +147,7 @@ class connection(threading.Thread):
             print("Socket error: {0}".format(str(v)))
         
 
-    def set_content_type(self, requested_data_type, request, response):
+    def set_content_type(self, requested_data_type, response):
         '''if(requested_data_type == "html"):
             data = "text/html"
         if(requested_data_type == "jpg"):
@@ -165,10 +169,12 @@ class connection(threading.Thread):
             req_file = "index.html"
         else:
             self.lock.acquire()
-            print("Request to string {0}".format(request.to_string()))
+            print("Request to string: ")
+            request.to_string()
             self.lock.release()
             req_file_split = request.get_path().split("/")
             req_file = req_file_split[1]
+            
 
         self.set_content_length(response, req_file)
         
@@ -180,10 +186,10 @@ class connection(threading.Thread):
             
 
         type_ = response.get_header("content-type")
-        if type_ in self.mime_types:
-            if(req_file == "logo.png" or req_file == "blue.jpg" or req_file == "style.css"):
-                total = self.read_file(req_file)
-                response.set_data(total)
+        
+        total = self.read_file(req_file)
+        print("Data: " + total)
+        response.set_data(total)
 
         
     def set_response_code(self, request, response):
@@ -215,8 +221,8 @@ class connection(threading.Thread):
 
 
     def read_file(self, file_name):
-        total = ""
-        with open(file_name) as f:
+        total = bytes()
+        with open(file_name, 'rb') as f:
             bytes_read =  f.read()
             total = total + bytes_read
         return total
