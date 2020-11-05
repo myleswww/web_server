@@ -12,7 +12,7 @@ import re
 import sys
 import threading
 
-#request class
+                                                #request class
 class request(object):
     method = " "
     path = " "
@@ -23,33 +23,39 @@ class request(object):
     Data = bytearray()
     
     
-    def set_method(self, type_input): #recieved a positional argument error for both set_method and set_path. added a throwaway variable 'a' to deal with this, LOL
+    def set_method(self, type_input):  
         """set the method to GET or POST"""
         self.method = type_input
         return type_input
 
+
     def get_method(self):
         '''returns the method'''
         return self.method    
+
 
     def set_path(self, input):
         """set the path to the target resource"""
         self.path = input
         return input
         
+
     def get_path(self):
         '''return path'''
         return self.path
+
 
     def set_data(self, input):
         """add the data for POST requests"""
         self.data = input
         return input
 
+
     def add_header(self, header, value):
         """add a header to the request"""
         self.headers[header] = value
     
+
     def get_header(self,header):
         return self.headers[header]
 
@@ -57,11 +63,10 @@ class request(object):
     def get_headers(self):
         """returns a string of correctly formatted dictionary items"""
         formatted_headers = "\n"
-        #print("Formatting headers...")
         for key, value in self.headers.items():
             formatted_headers = formatted_headers + f"{key}: {value}\n"
-        #print(formatted_headers)
         return formatted_headers
+
 
     def to_string(self):
         """prints the request formatted like we saw in class(use json)"""
@@ -72,9 +77,5 @@ class request(object):
     
     def __init__(self, type_input, path):
         """Does everything to return a string of the data"""
-        
         self.method =  self.set_method(type_input)
         self.path = self.set_path(path)
-        
-        
-        

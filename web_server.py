@@ -16,22 +16,22 @@ import datetime
 from _thread import start_new_thread
 from request import request
 from response import response
-#from queue_service import queue_service
+
 
 class connection(threading.Thread):
     '''class for multithreaded connections'''
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = 0
     port = 0
-    lock = threading.Lock() #saw a really cool tutorial for multithreading that included this
+    lock = threading.Lock()                         #saw a really cool tutorial for multithreading that included this
     codes = {
             "200": "OK",
             "404": "NOT FOUND",
             "503": "SERVICE UNAVAILABLE"
         }
     root = ["index.html", "home.html"]
-    server_name = "Myles' badass server 1.0"
-    mime_types = {  #better way to add the header using mime-types that you helped with
+    server_name = "Myles' badass server 2.0"
+    mime_types = {                                  #better way to add the header using mime-types that you helped with
             "html": "text/html",
             "css": "text/css",
             "jpg": "image/jpeg",
@@ -57,8 +57,8 @@ class connection(threading.Thread):
         '''function that listens to a specific port number. uses threading'''
         try:
             self.sock.listen(200)
-            
-            print("Listening for connections on port {0}".format(self.port)) #I saw this .format on stackoverflow
+                                                    #I saw this .format on stackoverflow
+            print("Listening for connections on port {0}".format(self.port)) 
             
             while True:
                 connection, address = self.sock.accept()
@@ -78,43 +78,37 @@ class connection(threading.Thread):
 
     def parse(self, c, addr, conn):
         '''parses the data and puts it into a request object. Then the request object is added to the array of requests'''
-        s = c.decode('UTF-8') #split the string into an array
+        s = c.decode('UTF-8')                       #split the string into an array
         
         lines = s.split("\r\n")
         a = re.split(" +", lines[0])
 
-        #assign the variables to a request object
-        #print(a[0] + " " + a[1])
-        req = request(a[0], a[1]) #since req requires the method and path to be initialized, this has to be done before the loop
+                                                    #assign the variables to a request object
+    
+        req = request(a[0], a[1])                   #since req requires the method and path to be initialized, this has to be done before the loop
         
-        #set headers
+                                                    #set headers
         for b in lines:
-            #print("This is b: {0}".format(b))
-            if lines.index(b) == 0: #do not want to repeat what we already did.
+            if lines.index(b) == 0:                 #do not want to repeat what we already did.
                 continue
-            if(b == ''): #last two values are '', if left to be split, they will cause an out of index error
+            if(b == ''):                            #last two values are '', if left to be split, they will cause an out of index error
                 continue
             else:
-                a = b.split(": ") #split headers by ':'
-                req.add_header(a[0], a[1]) # a is [header, value] in this case
+                a = b.split(": ")                   #split headers by ':'
+                req.add_header(a[0], a[1])          # a is [header, value] in this case
         self.lock.acquire()
-        req.to_string()
+        req.to_string()                             #print for logging
         self.lock.release()
-        #add to list of requests
-        self.client_requests.append(req)
-        
+
+        self.client_requests.append(req)           #add to list of requests 
         self.generate_response(req, addr, conn)
 
-        
 
     def generate_response(self,request, addr, conn):
         '''assigns values to response class based on request object'''
-        resp = response() #create response object
+        resp = response()                           #create response object
 
-        #doing some cleaning up :)
-        
-        path = request.get_path()
-        #print(path)
+        path = request.get_path()                   #doing some cleaning up :)
         if(path == "/"):
             requested_data_type = "html"
         if(path != "/"):
@@ -130,18 +124,16 @@ class connection(threading.Thread):
         self.get_data(request, resp)
         self.set_response_code(request, resp)
         self.set_date_time(resp)
-        
-
-        self.lock.acquire()
+                    
+        self.lock.acquire()                         #print response for logging
         self.responses.append(resp)
-        #print("Response to client: \n{0}".format(resp.to_send().decode('UTF-8', 'ignore')))
         print("Response to client:\n{0}".format(resp.to_string()))
         self.lock.release()
 
+                                                    
         try:
             conn.sendall(resp.to_send())
-            #conn.sendall(bytes('\n', 'UTF-8')) #separate headers from body!!!!! IMPORTANT!!!!!!!!!!!
-            conn.sendall(resp.get_byte_data())
+            conn.sendall(resp.get_byte_data())      #send the data
             conn.close()
             print("Sent response")
         except socket.error as v:
@@ -150,29 +142,17 @@ class connection(threading.Thread):
         
 
     def set_content_type(self, requested_data_type, response):
-        '''if(requested_data_type == "html"):
-            data = "text/html"
-        if(requested_data_type == "jpg"):
-            data = "jpg"
-        if(requested_data_type == "png"):
-            data = "png"
-        if(requested_data_type == "ico"):
-            data = "ico"
-        
-        response.add_header("content-type", data)'''
-
+        '''sets the content-type header'''
         response.add_header("content-type", self.mime_types[requested_data_type])
         
         
     def get_data(self, request, response):
         '''gets the data to send'''
-        
         if(request.get_path() == "/"):
             req_file = "index.html"
         else:
             self.lock.acquire()
-           # print("Request to string: ")
-            request.to_string()
+            request.to_string()                     #print request for logging
             self.lock.release()
             req_file_split = request.get_path().split("/")
             req_file = req_file_split[1]
@@ -180,30 +160,30 @@ class connection(threading.Thread):
 
         self.set_content_length(response, req_file)
         
+                                                    #loop through root list and get data
         if(response.get_header("content-type") == "text/html"):
             for x in self.root:
                 if(x == req_file):
                     total = self.read_file(req_file)
                     response.set_data(total)
             
-
+                                                    #loop through mime types and get correct data
         type_ = response.get_header("content-type")
-        
-        total = self.read_file(req_file)
-        self.lock.acquire()
-        #print("Data: " + total.decode('UTF-8', 'ignore'))
-        self.lock.release()
-        response.set_data(total)
+        for x, y in self.mime_types.items():
+            if(type_ == y):
+                total = self.read_file(req_file)
+                response.set_data(total)
 
         
     def set_response_code(self, request, response):
-        if(response.get_data() != ''):
+        '''sets the response code based on other factors and if they are met'''                                        
+        if(response.get_data() != ''):              #at this point the data is set so if there is no data, nothing was found
             response.set_code("200" + " " + self.codes["200"])
             self.set_connection(response, "keep-alive")
         if(response.get_data() == ''):
             response.set_code("404" + " " + self.codes["404"])
             self.set_connection(response, "closed")
-        if(request.get_method() != "GET"):
+        if(request.get_method() != "GET"):          #This server does not allow for posting
             response.set_code("503" + " " + self.codes["503"])
             self.set_connection(response, "closed")
         
@@ -225,6 +205,7 @@ class connection(threading.Thread):
 
 
     def read_file(self, file_name):
+        '''reads the file and returns the raw data'''
         total = bytes()
         with open(file_name, 'rb') as f:
             bytes_read =  f.read()
