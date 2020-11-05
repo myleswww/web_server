@@ -53,8 +53,8 @@ class response(object):
 
     def set_data(self, data):
         '''may take file contents instead of path if that works'''
-        self.data = data
-        self.Data = data.encode("UTF-8")
+        self.data = data.decode('UTF-8', 'ignore')
+        self.Data = data
 
 
     def set_version(self, version):
@@ -76,7 +76,7 @@ class response(object):
         return message
 
     def to_send(self):
-        message = (self.version + " " + self.code + self.get_headers() + "\n" + self.get_data() + "\n").encode("UTF-8")
+        message = (self.version + " " + self.code + self.get_headers() + "\n").encode('UTF-8') + (self.get_byte_data()) + ("\n").encode('UTF-8')
         return message
 
 

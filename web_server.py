@@ -97,8 +97,9 @@ class connection(threading.Thread):
             else:
                 a = b.split(": ") #split headers by ':'
                 req.add_header(a[0], a[1]) # a is [header, value] in this case
-        
+        self.lock.acquire()
         req.to_string()
+        self.lock.release()
         #add to list of requests
         self.client_requests.append(req)
         
@@ -133,11 +134,10 @@ class connection(threading.Thread):
 
         self.lock.acquire()
         self.responses.append(resp)
-        print("Response to client: \n{0}".format(resp.to_send().decode("UTF-8")))
+        print("Response to client: \n{0}".format(resp.to_send().decode('UTF-8', 'ignore')))
         self.lock.release()
 
         try:
-
             conn.sendall(resp.to_send())
             #conn.sendall(bytes('\n', 'UTF-8')) #separate headers from body!!!!! IMPORTANT!!!!!!!!!!!
             conn.sendall(resp.get_byte_data())
@@ -145,6 +145,7 @@ class connection(threading.Thread):
             print("Sent response")
         except socket.error as v:
             print("Socket error: {0}".format(str(v)))
+        
         
 
     def set_content_type(self, requested_data_type, response):
@@ -169,7 +170,7 @@ class connection(threading.Thread):
             req_file = "index.html"
         else:
             self.lock.acquire()
-            print("Request to string: ")
+           # print("Request to string: ")
             request.to_string()
             self.lock.release()
             req_file_split = request.get_path().split("/")
@@ -188,7 +189,9 @@ class connection(threading.Thread):
         type_ = response.get_header("content-type")
         
         total = self.read_file(req_file)
-        print("Data: " + total)
+        self.lock.acquire()
+        print("Data: " + total.decode('UTF-8', 'ignore'))
+        self.lock.release()
         response.set_data(total)
 
         
